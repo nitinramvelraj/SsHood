@@ -1,8 +1,7 @@
 # Backend Setup  
-
-## Development  
-Project is setup to use routes for API routes, and services for business logic. To add a new base route register the route in flaskr/__init__.py like how the health endpoint is registered
 ### Setup instructions  
+  
+Start backend in its own terminal window  
   
 Start by creating a virtual environment.  
 ```python3 -m venv .venv```  
