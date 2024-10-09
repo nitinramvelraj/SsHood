@@ -13,10 +13,11 @@ For windows:
 ```.venv/Scripts/Activate```  
 Install dependencies.  
 ```pip install -r requirements.txt```  
-Create a local .env file with the following contents in the proj1 directory  
+Create a local .env file with the following contents in the ./backend directory  
 ```
 FLASK_APP=app:create_app
 FLASK_ENV=development
+SECRET_KEY=some-secret-value
 ```
 Run server locally for development  
 ```flask run```  
