@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Typography,
   Button,
@@ -15,7 +14,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { useAppSelector } from '../hooks/redux-hooks';
+import { useNavigate } from 'react-router-dom';
 import AddMoney from './AddMoney';
 import useApi from '../hooks/useApi';
 import { ApiResponse } from '../types/basicTypes';
@@ -54,13 +53,13 @@ const Home: React.FC = () => {
     Promise.all([fetchBalance(), fetchPortfolio()]).then(() => setLoading(false));
   }, [fetchBalance, fetchPortfolio]);
 
+  const handleSuccessfulAddMoney = () => {
+    fetchBalance();
+  };
+
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     navigate(`/search?ticker=${searchTicker}`);
-  };
-
-  const handleSuccessfulAddMoney = () => {
-    fetchBalance();
   };
 
   return (
@@ -82,10 +81,10 @@ const Home: React.FC = () => {
             Search
           </Button>
         </Box>
-        <AddMoney onSuccessfulAdd={handleSuccessfulAddMoney} />
         <Button variant="outlined" disabled>
           Buying Power: ${balance !== null ? balance.toFixed(2) : '0.00'}
         </Button>
+        <AddMoney onSuccessfulAdd={handleSuccessfulAddMoney} />
       </Paper>
 
       <Paper sx={{ p: 2 }}>
