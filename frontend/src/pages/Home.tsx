@@ -1,8 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../hooks/redux-hooks";
-import { fetchUserBalance, searchStocks } from "../slices/homeSlice";
-import { logout } from "../slices/authSlice";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -11,61 +8,70 @@ import {
   TextField,
   Box,
   Container,
-  IconButton,
   Paper,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import AddMoney from "./AddMoney";
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { useAppDispatch } from '../hooks/redux-hooks';
+import { clearUser } from '../slices/userSlice';
+import AddMoney from './AddMoney';
+import useApi from '../hooks/useApi';
+import { ApiResponse } from '../types/basicTypes';
+import { PortfolioItem } from '../types/basicTypes';
 
-const Home = () => {
+const Home: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
+  const { callApi } = useApi();
+  const [balance, setBalance] = useState<number | null>(null);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const basicUserInfo = useAppSelector((state) => state.home.basicUserInfo);
-
-  const refreshBalance = useCallback(() => {
-    if (basicUserInfo?.id) {
-      dispatch(fetchUserBalance(basicUserInfo.id));
+  const fetchBalance = useCallback(async () => {
+    try {
+      const response: ApiResponse<{ balance: number; }> = await callApi('get', '/api/user/balance');
+      setBalance(response.data.balance);
+    } catch (error) {
+      console.error('Failed to fetch balance:', error);
     }
-  }, [dispatch, basicUserInfo?.id]);
+  }, [callApi]);
+
+  const fetchPortfolio = useCallback(async () => {
+    try {
+      const response = await callApi('get', '/api/user/portfolio');
+      setPortfolio(response.data);
+    } catch (error) {
+      console.error('Failed to fetch portfolio:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [callApi]);
 
   useEffect(() => {
-    refreshBalance();
-  }, [refreshBalance]);
+    setLoading(true);
+    Promise.all([fetchBalance(), fetchPortfolio()]).then(() => setLoading(false));
+  }, [fetchBalance, fetchPortfolio]);
 
-  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (searchTerm.trim()) {
-      dispatch(searchStocks(searchTerm));
-    }
+  const handleLogout = () => {
+    dispatch(clearUser());
+    navigate('/login');
   };
 
-  const handleLogout = async () => {
-    try {
-      await dispatch(logout()).unwrap();
-      navigate("/login");
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const buttonStyle = {
-    width: '150px',
-    height: '40px',
-    color: "#ffa726",
-    borderColor: "#ffa726",
-    "&:hover": {
-      backgroundColor: "#ffe0b2",
-      borderColor: "#ff9800",
-    },
+  const handleSuccessfulAddMoney = () => {
+    fetchBalance();
   };
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" sx={{ bgcolor: "#42a5f5" }}>
-        <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+      <AppBar position="static" sx={{ bgcolor: '#33ccff' }}>
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             SellScaleHood
           </Typography>
           <Button color="inherit" onClick={handleLogout}>
@@ -74,63 +80,58 @@ const Home = () => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Paper
-          component="form"
-          onSubmit={handleSearch}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            p: "2px 4px",
-            mb: 2,
-            width: "100%",
-            borderRadius: "10px",
-            border: "1px solid #ffa726",
-          }}
-        >
-          <IconButton type="submit" sx={{ p: "10px" }}>
-            <SearchIcon />
-          </IconButton>
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <TextField
-            fullWidth
-            variant="standard"
+            variant="outlined"
+            size="small"
             placeholder="Search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ ml: 1 }}
+            InputProps={{
+              startAdornment: <SearchIcon />,
+            }}
+            sx={{ flexGrow: 1 }}
           />
+          <Button variant="outlined" disabled>
+            Buying Power: ${balance !== null ? balance.toFixed(2) : '0.00'}
+          </Button>
+          <AddMoney onSuccessfulAdd={handleSuccessfulAddMoney} />
         </Paper>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/portfolio")}
-            sx={buttonStyle}
-          >
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
             Portfolio
-          </Button>
-
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              flex: 1,
-              textAlign: 'center',
-              fontWeight: "bold", 
-              color: "#616161" 
-            }}
-          >
-            Buying Power: ${basicUserInfo?.balance.toFixed(2)}
           </Typography>
-
-          <AddMoney buttonStyle={buttonStyle} onSuccessfulAdd={refreshBalance} />
-        </Box>
+          {loading ? (
+            <Box display="flex" justifyContent="center" my={4}>
+              <CircularProgress />
+            </Box>
+          ) : portfolio && portfolio.length > 0 ? (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Ticker</TableCell>
+                    <TableCell>Shares</TableCell>
+                    <TableCell align="right">Value</TableCell> 
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {portfolio.map((item) => (
+                    <TableRow key={item.stock_id}>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell>{item.ticker}</TableCell>
+                      <TableCell>{item.num_shares}</TableCell>
+                      <TableCell align="right">${item.value}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Typography>No stocks in portfolio.</Typography>
+          )}
+        </Paper>
       </Container>
     </Box>
   );

@@ -22,5 +22,5 @@
   },
   "include": [
     "src"
-, "types/basicTypes.ts"  ]
+, "src/types/basicTypes.ts"  ]
 }

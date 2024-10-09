@@ -6,12 +6,9 @@ from app.services.yfinance_service import get_current_stock_info
 from app import db
 import logging
 
-def add_balance(data):
+def add_balance(user_id, data):
     if "credit" not in data:
         raise ValueError("credit needs to be specified")
-    if "user" not in data.keys():
-        raise ValueError("user needs to be specified")
-    user_id = data["user"]
     credits = data["credit"]
     user = User.query.get(user_id)
     if not user:
@@ -42,7 +39,8 @@ def get_user_portfolio(user_id):
             'stock_id': item.stock_id,
             'ticker': item.stock.ticker,
             'name': item.stock.name,
-            'num_shares': item.num_shares
+            'num_shares': item.num_shares,
+            'value': get_current_stock_info(item.stock.ticker)["price"] * item.num_shares
         }
         for item in portfolio_items
     ]
