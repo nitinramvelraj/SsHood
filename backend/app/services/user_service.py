@@ -124,18 +124,22 @@ def sell(user_id, ticker, num_shares):
         raise ValueError("Error completing transaction")
     
 def search_ticker(ticker, user_id):
-    response_obj = get_current_stock_info(ticker)
-    response_obj["currentPosition"] = 0
-    response_obj["currentPositionValue"] = 0
+    response = {}
+    data = get_current_stock_info(ticker)
+    data["currentPosition"] = 0
+    data["currentPositionValue"] = 0
     user = User.query.get(user_id)
     if not user:
         raise ValueError("User not found")
     stock = Stock.query.filter_by(ticker=ticker).first()
     if not stock:
-        return response_obj
+        response["data"] = data
+        return response
     portfolio = Portfolio.query.filter_by(user_id=user_id, stock_id=stock.id).first()
     if not portfolio:
-        return response_obj
-    response_obj["currentPosition"] = portfolio.num_shares
-    response_obj["currentPositionValue"] = portfolio.num_shares * response_obj["price"]
-    return response_obj
+        response["data"] = data
+        return response
+    data["currentPosition"] = portfolio.num_shares
+    data["currentPositionValue"] = portfolio.num_shares * data["price"]
+    response["data"] = data
+    return response

@@ -68,7 +68,7 @@ const AddMoney: React.FC<AddMoneyProps> = ({ onSuccessfulAdd }) => {
 
   return (
     <>
-      <Button variant="outlined" onClick={handleOpen} sx={{ bgcolor: 'white' }}>
+      <Button variant="contained" sx={{ ml: 1 }} onClick={handleOpen}>
         Add Money
       </Button>
 
@@ -108,16 +108,8 @@ const AddMoney: React.FC<AddMoneyProps> = ({ onSuccessfulAdd }) => {
             />
             <Button 
               onClick={handleAddMoney} 
-              variant="contained" 
-              color="primary" 
+              variant="contained" sx={{ ml: 1 }}
               disabled={loading}
-              sx={{ 
-                width: '100px',
-                bgcolor: '#33ccff',
-                '&:hover': {
-                  bgcolor: '#28a8d8',
-                },
-              }}
             >
               {loading ? 'Adding...' : 'Add'}
             </Button>

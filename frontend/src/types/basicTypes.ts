@@ -29,8 +29,10 @@ export interface AddBalance {
 }
 
 export interface SearchResult {
-  symbol: string;
+  currentPosition: number;
+  currentPositionValue: number;
   name: string;
+  price: number;
 }
 
 export interface ApiResponse<T> {

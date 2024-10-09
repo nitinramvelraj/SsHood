@@ -32,6 +32,7 @@ const Home: React.FC = () => {
   const [balance, setBalance] = useState<number | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioItem[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [searchTicker, setSearchTicker] = useState<string>('');
 
   const fetchBalance = useCallback(async () => {
     try {
@@ -67,9 +68,14 @@ const Home: React.FC = () => {
     fetchBalance();
   };
 
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    navigate(`/search?ticker=${searchTicker}`);
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" sx={{ bgcolor: '#33ccff' }}>
+      <AppBar position="static" color="primary">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             SellScaleHood
@@ -82,15 +88,22 @@ const Home: React.FC = () => {
 
       <Container maxWidth="md" sx={{ mt: 4 }}>
         <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search"
-            InputProps={{
-              startAdornment: <SearchIcon />,
-            }}
-            sx={{ flexGrow: 1 }}
-          />
+          <Box component="form" onSubmit={handleSearch} sx={{ display: 'flex', flexGrow: 1 }}>
+            <TextField
+              variant="outlined"
+              size="small"
+              placeholder="Search"
+              value={searchTicker}
+              onChange={(e) => setSearchTicker(e.target.value)}
+              InputProps={{
+                startAdornment: <SearchIcon />,
+              }}
+              sx={{ flexGrow: 1 }}
+            />
+            <Button type="submit" variant="contained" sx={{ ml: 1 }}>
+              Search
+            </Button>
+          </Box>
           <Button variant="outlined" disabled>
             Buying Power: ${balance !== null ? balance.toFixed(2) : '0.00'}
           </Button>
