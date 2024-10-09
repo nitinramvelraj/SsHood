@@ -14,7 +14,7 @@ class User(db.Model):
         if not self.id:
             self.id = str(uuid.uuid4())
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'id': self.id,
             'firstname': self.firstname,

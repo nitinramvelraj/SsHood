@@ -3,7 +3,7 @@ from app import db
 from app.utils.password_utils import hash_password, check_password
 import logging
 
-def register_user(data):
+def register_user(data: dict) -> User:
     if User.query.filter_by(email=data['email']).first():
         raise ValueError("Email already registered")
 
@@ -19,7 +19,7 @@ def register_user(data):
     logging.info(f"New user registered: {new_user.email}")
     return new_user
 
-def login_user(data):
+def login_user(data: dict) -> User:
     user = User.query.filter_by(email=data['email']).first()
     if not user or not check_password(data['password'], user.password):
         raise ValueError("Invalid email or password")

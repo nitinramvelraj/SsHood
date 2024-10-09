@@ -6,7 +6,7 @@ from app.services.yfinance_service import get_current_stock_info
 from app import db
 import logging
 
-def add_balance(user_id, data):
+def add_balance(user_id: str, data: dict) -> None:
     if "credit" not in data:
         raise ValueError("credit needs to be specified")
     credits = data["credit"]
@@ -23,7 +23,7 @@ def add_balance(user_id, data):
         logging.error(f"Failed to update balance for user {user_id}. Error: {str(e)}")
         raise ValueError("Failed to update user balance.")
     
-def get_user_portfolio(user_id):
+def get_user_portfolio(user_id: str) -> list[dict]:
     if not user_id:
         raise ValueError("User ID is required")
 
@@ -47,7 +47,7 @@ def get_user_portfolio(user_id):
 
     return portfolio_data
 
-def buy(user_id, ticker, num_shares):
+def buy(user_id: str, ticker: str, num_shares: int) -> None:
     try:
         num_shares = int(num_shares)
     except ValueError:
@@ -89,7 +89,7 @@ def buy(user_id, ticker, num_shares):
         db.session.rollback()
         raise ValueError("Error completing transaction")
 
-def sell(user_id, ticker, num_shares):
+def sell(user_id: str, ticker: str, num_shares: int) -> None:
     try:
         num_shares = int(num_shares)
     except ValueError:
@@ -123,7 +123,7 @@ def sell(user_id, ticker, num_shares):
         db.session.rollback()
         raise ValueError("Error completing transaction")
     
-def search_ticker(ticker, user_id):
+def search_ticker(ticker: str, user_id: str) -> dict:
     response = {}
     data = get_current_stock_info(ticker)
     data["currentPosition"] = 0
