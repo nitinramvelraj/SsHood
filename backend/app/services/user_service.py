@@ -6,7 +6,8 @@ from app.services.yfinance_service import get_current_stock_info
 from app import db
 import logging
 
-def add_balance(user_id: str, data: dict) -> None:
+def add_balance(user_id: str, data: dict) -> dict:
+    response = {}
     if "credit" not in data:
         raise ValueError("credit needs to be specified")
     credits = data["credit"]
@@ -17,7 +18,11 @@ def add_balance(user_id: str, data: dict) -> None:
     try:
         user.balance += float(credits)
         db.session.commit()
+        data = {}
+        data["balance"] = user.balance
+        response["data"] = data
         logging.info(f"Updated balance for user {user_id}. New balance: {user.balance}")
+        return response
     except Exception as e:
         db.session.rollback()
         logging.error(f"Failed to update balance for user {user_id}. Error: {str(e)}")

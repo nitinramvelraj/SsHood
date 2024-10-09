@@ -24,7 +24,7 @@ const AddMoney: React.FC<AddMoneyProps> = ({ onSuccessfulAdd }) => {
 
   const dispatch = useAppDispatch();
   const { loading, error, callApi } = useApi();
-  const userId = useAppSelector((state) => state.user.basicInfo?.id);
+  const user = useAppSelector((state) => state.user.basicInfo);
 
   const handleOpen = () => {
     setOpen(true);
@@ -45,19 +45,23 @@ const AddMoney: React.FC<AddMoneyProps> = ({ onSuccessfulAdd }) => {
       return;
     }
 
-    if (!userId) {
-      setLocalError("User ID not found. Please try logging in again.");
+    if (!user || !user.id) {
+      setLocalError("User information not found. Please try logging in again.");
       return;
     }
 
     const data: AddBalance = {
-      user: userId,
+      user: user.id,
       credit: Number(amount),
     };
 
     try {
       const response: ApiResponse<UserBasicInfo> = await callApi('post', '/api/user/balance', data);
-      dispatch(setUser(response.data));
+      dispatch(setUser({
+        ...user,
+        balance: response.data.balance
+      }));
+      
       onSuccessfulAdd();
       handleClose();
     } catch (e) {

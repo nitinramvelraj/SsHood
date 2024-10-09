@@ -14,28 +14,23 @@ import {
   CircularProgress,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import AddMoney from './AddMoney';
 import useApi from '../hooks/useApi';
 import { ApiResponse } from '../types/basicTypes';
 import { PortfolioItem } from '../types/basicTypes';
+import { useAppDispatch, useAppSelector } from '../hooks/redux-hooks';
+import { clearUser } from '../slices/userSlice';
 
 const Home: React.FC = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { callApi } = useApi();
-  const [balance, setBalance] = useState<number | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioItem[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTicker, setSearchTicker] = useState<string>('');
 
-  const fetchBalance = useCallback(async () => {
-    try {
-      const response: ApiResponse<{ balance: number; }> = await callApi('get', '/api/user/balance');
-      setBalance(response.data.balance);
-    } catch (error) {
-      console.error('Failed to fetch balance:', error);
-    }
-  }, [callApi]);
+  const user = useAppSelector((state) => state.user.basicInfo);
 
   const fetchPortfolio = useCallback(async () => {
     try {
@@ -50,17 +45,26 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchBalance(), fetchPortfolio()]).then(() => setLoading(false));
-  }, [fetchBalance, fetchPortfolio]);
+    fetchPortfolio();
+  }, [fetchPortfolio]);
+
+  const handleLogout = () => {
+    dispatch(clearUser());
+    navigate('/login');
+  };
 
   const handleSuccessfulAddMoney = () => {
-    fetchBalance();
+    fetchPortfolio();
   };
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     navigate(`/search?ticker=${searchTicker}`);
   };
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -81,10 +85,10 @@ const Home: React.FC = () => {
             Search
           </Button>
         </Box>
-        <Button variant="outlined" disabled>
-          Buying Power: ${balance !== null ? balance.toFixed(2) : '0.00'}
-        </Button>
-        <AddMoney onSuccessfulAdd={handleSuccessfulAddMoney} />
+          <Button variant="outlined" disabled>
+            Buying Power: ${user.balance.toFixed(2)}
+          </Button>
+          <AddMoney onSuccessfulAdd={handleSuccessfulAddMoney} />
       </Paper>
 
       <Paper sx={{ p: 2 }}>

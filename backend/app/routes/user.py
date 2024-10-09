@@ -10,7 +10,7 @@ user_bp = Blueprint('user', __name__, url_prefix='/api/user')
 
 @user_bp.route('/balance', methods=['GET'])
 @jwt_required()
-def get_user_data():
+def get_user_balance():
     current_user = get_jwt_identity()
     user_id = current_user["id"]
     user = User.query.get(user_id)
@@ -23,13 +23,13 @@ def get_user_data():
 
 @user_bp.route('/balance', methods=['POST'])
 @jwt_required()
-def register():
+def add_user_balance():
     current_user = get_jwt_identity()
     user_id = current_user["id"]
     data = request.json
     try:
-        add_balance(user_id, data)
-        return jsonify({"message": "success"}), 201
+        response = add_balance(user_id, data)
+        return jsonify(response), 200
     except ValueError as e:
         logging.error(f"Error: {str(e)}")
         return jsonify({"message": str(e)}), 400
